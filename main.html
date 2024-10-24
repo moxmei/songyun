@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="x5-fullscreen" content="true">
+    <meta name="viewport" content="width=device-width,initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
+    <title>宋韵卿裳街景</title>
+    <style>
+        html,body {
+            width: 100%;
+            height: 100%;
+            margin: 0;
+            padding: 0;
+        }
+
+        .loading{
+            position: fixed;
+            top: 0;
+            left:0;
+            width: 100%;
+            height: 100%;
+            background-color: white;
+            z-index: 100;
+            opacity: 1;
+            transition: opacity 3s ease;
+        }
+
+        .loading_out {
+            opacity: 0;
+            transition: opacity 3s ease;
+        }
+
+        .container {
+            position: relative;
+            height: 100vh; 
+            width: 100vw;
+            overflow: hidden;
+        }
+        
+        .bg {
+            height: 100%;
+            width: 100%;
+            display: flex;
+            cursor: grab;
+            overflow: hidden;
+            white-space: nowrap;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .bgimg {
+            flex-shrink: 0; /* 防止图片缩小 */
+            width: 100%;
+            height: auto;
+		}
+
+        #music{
+			position: absolute;
+			width: 3%;
+			right: 1%;
+			top: 1%;
+			z-index: 10;
+			cursor: pointer;
+		}
+
+        .tip1{
+            position: absolute;
+            z-index: 5;
+            height: 13%;
+            left: 0%;
+            bottom: 14%;
+            cursor: pointer;
+        }
+
+        .tip2{
+            position: absolute;
+            z-index: 5;
+            height: 13%;
+            left:15%;
+            /* transform: translateX(50%); */
+            bottom: 25%;
+            cursor: pointer;
+        }
+
+        .tip3{
+            position: absolute;
+            z-index: 5;
+            height: 13%;
+            right: 18%;
+            /* transform: translateX(160%); */
+            bottom: 25%;
+            cursor: pointer;
+        }
+
+        .tip4{
+            position: absolute;
+            z-index: 5;
+            height: 13%;
+            right:0%;
+            /* transform: translateX(215%); */
+            bottom: 10%;
+            cursor: pointer;
+        }
+
+    </style>
+</head>
+<body>
+    <div class="loading"></div>
+    <div class="container">
+        <div class="bg" id="scrollable-div" onmousedown="startDragging(event)" onmouseup="stopDragging()" onmouseleave="stopDragging()" onmousemove="drag(event)" ontouchstart="startDragging(event)" ontouchend="stopDragging()" ontouchmove="drag(event)">
+            <img class="bgimg" src="./image/allbg.png">
+            <img class="tip1"  src="./image/clothingShopTips.png">
+            <img class="tip2"  src="./image/hairShopTips.png">
+            <img class="tip3"  src="./image/jewelryShopTips.png">
+            <img class="tip4"  src="./image/cloakroomTips.png">
+            <audio id="myAudio" src="./material/music.mp3" autoplay="autoplay" loop="loop" preload="auto"></audio>
+            <img id="music" src="./material/music0.png"/>
+        </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        $(document).ready(function() {
+            const people = localStorage.getItem("person");
+            $(".person").html(people);
+        });
+
+        var isDragging = false;
+        var startX = 0;
+        var scrollLeft = 0;
+
+        function startDragging(event) {
+            isDragging = true;
+            startX = getClientX(event);
+            scrollLeft = document.getElementById('scrollable-div').scrollLeft;
+            document.getElementById('scrollable-div').style.cursor = 'grabbing';
+            event.preventDefault(); 
+        }
+
+        function stopDragging() {
+            isDragging = false;
+            document.getElementById('scrollable-div').style.cursor = 'grab';
+        }
+
+        function drag(event) {
+            if (!isDragging) return;
+            var scrollableDiv = document.getElementById('scrollable-div');
+            var scrollX = getClientX(event) - startX;
+            scrollableDiv.scrollLeft = scrollLeft - scrollX;
+        }
+
+        function getClientX(event) {
+            if (event.touches && event.touches.length > 0) {
+                return event.touches[0].clientX; 
+            }
+            return event.clientX;
+        }
+
+        // 存储滚动位置到 localStorage
+        function storeScrollPosition() {
+            var scrollLeft = document.getElementById('scrollable-div').scrollLeft;
+            localStorage.setItem('scrollPosition', scrollLeft);
+        }
+
+        // 恢复滚动位置
+        window.onload = function() {
+            var savedScrollPosition = localStorage.getItem('scrollPosition');
+            if (savedScrollPosition) {
+                document.getElementById('scrollable-div').scrollLeft = savedScrollPosition;
+            }
+        };
+
+        // 在离开页面时存储滚动位置
+        window.onbeforeunload = function() {
+            storeScrollPosition();
+        };
+
+        const loading = {
+            container: document.querySelector(".loading"),
+            in: function(target) {
+                this.container.classList.remove("loading_out");
+                setTimeout(() => {
+                    window.location.href = target;
+                }, 1000); // 等待1秒后执行页面跳转
+            },
+            out: function() {
+                this.container.classList.add("loading_out");
+                setTimeout(() => {
+                    this.container.style.display = 'none'; // 隐藏 loading div
+                }, 1000); // 等待1秒后隐藏 loading
+            }
+        };
+
+        document.addEventListener('DOMContentLoaded', function () {
+            let audio = document.getElementById('myAudio');
+            let musicImg = document.getElementById('music');
+
+            function playMusic() {
+                if (audio.paused) {
+                    audio.play();
+                    musicImg.src = './material/music.png';
+                    localStorage.setItem('musicPlaying', 'true');
+                } else {
+                    audio.pause();
+                    musicImg.src = './material/music0.png';
+                    localStorage.setItem('musicPlaying', 'false');
+                }
+            }
+
+            if (localStorage.getItem('musicPlaying') === 'true') {
+                let savedTime = localStorage.getItem('musicTime');
+                if (savedTime) {
+                    audio.currentTime = parseFloat(savedTime);
+                }
+                audio.play().catch(function(error) {
+                    console.error('自动播放被浏览器拦截:', error);
+                });
+                musicImg.src = './material/music.png';
+            } else {
+                audio.pause(); // 如果在首页面未播放，则暂停音乐
+                musicImg.src = './material/music0.png';
+            }
+
+            // 保存播放时间
+            audio.addEventListener('timeupdate', function() {
+                localStorage.setItem('musicTime', audio.currentTime.toString());
+            });
+
+            // 点击音乐图标控制音乐播放/暂停
+            musicImg.addEventListener('click', playMusic);
+        });
+
+        document.querySelector('.tip1').addEventListener('touchstart', function(event) {
+            event.preventDefault(); // 阻止默认事件
+            loading.out();
+            setTimeout(() => {
+                loading.in('Clothing stores.html');
+            }, 1000); // 等待1秒后执行页面跳转
+        });
+
+        document.querySelector('.tip2').addEventListener('touchstart', function() {
+            loading.out();
+            setTimeout(() => {
+                loading.in('Hair.html');
+            }, 1000); // 等待1秒后执行页面跳转
+        });
+
+        document.querySelector('.tip3').addEventListener('touchstart', function() {
+            loading.out();
+            setTimeout(() => {
+                loading.in('Jewelry stores.html');
+            }, 1000); // 等待1秒后执行页面跳转
+        });
+
+        document.querySelector('.tip4').addEventListener('touchstart', function() {
+            loading.out();
+            setTimeout(() => {
+                loading.in('Cloakroom.html');
+            }, 1000); // 等待1秒后执行页面跳转
+        });
+
+        document.querySelector('.tip1').addEventListener('click', function(event) {
+            event.preventDefault(); // 阻止默认事件
+            loading.out();
+            setTimeout(() => {
+                loading.in('Clothing stores.html');
+            }, 1000); // 等待1秒后执行页面跳转
+        });
+
+        document.querySelector('.tip2').addEventListener('click', function() {
+            loading.out();
+            setTimeout(() => {
+                loading.in('Hair.html');
+            }, 1000); // 等待1秒后执行页面跳转
+        });
+
+        document.querySelector('.tip3').addEventListener('click', function() {
+            loading.out();
+            setTimeout(() => {
+                loading.in('Jewelry stores.html');
+            }, 1000); // 等待1秒后执行页面跳转
+        });
+
+        document.querySelector('.tip4').addEventListener('click', function() {
+            loading.out();
+            setTimeout(() => {
+                loading.in('Cloakroom.html');
+            }, 1000); // 等待1秒后执行页面跳转
+        });
+
+        window.addEventListener("load", () => {
+            loading.out();
+        });
+    </script>
+</body>
+</html>
